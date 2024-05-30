@@ -12,6 +12,8 @@ import { ResponseError } from '../error/response-error';
 import bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import { User } from '@prisma/client';
+import { UserRequest } from '../type/user-request';
+import { NextFunction, Response } from 'express';
 
 export class UserService {
   static async register(request: CreateUserRequest): Promise<UserResponse> {
@@ -76,7 +78,7 @@ export class UserService {
     return response;
   }
 
-  // flow : web.ts -> authMiddleware (give user data) -> controller -> service (receive user data) -> DTO
+  // flow : web.ts -> authMiddleware (give user data based on attached token) -> controller -> service (receive user data) -> DTO
   static async get(user: User): Promise<UserResponse> {
     return toUserResponse(user);
   }
@@ -103,6 +105,15 @@ export class UserService {
         username: user.username,
       },
     });
+    return toUserResponse(result);
+  }
+
+  static async logout(user: User): Promise<UserResponse> {
+    const result = await prismaClient.user.update({
+      data: { token: null },
+      where: { username: user.username },
+    });
+
     return toUserResponse(result);
   }
 }
