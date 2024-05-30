@@ -10,6 +10,7 @@ import { prismaClient } from '../app/database';
 import { ResponseError } from '../error/response-error';
 import bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
+import { User } from '@prisma/client';
 
 export class UserService {
   static async register(request: CreateUserRequest): Promise<UserResponse> {
@@ -72,5 +73,10 @@ export class UserService {
     response.token = user.token!; // can't modify toUserResponse because it's used by register also. therefore we force add the token here
 
     return response;
+  }
+
+  // flow : web.ts -> authMiddleware (give user data) -> controller -> service (receive user data) -> DTO
+  static async get(user: User): Promise<UserResponse> {
+    return toUserResponse(user);
   }
 }
