@@ -1,5 +1,6 @@
 import {
   CreateUserRequest,
+  LoginUserRequest,
   UserResponse,
   toUserResponse,
 } from '../model/user-model';
@@ -8,6 +9,7 @@ import { ValidationHelper } from '../validation/helper';
 import { prismaClient } from '../app/database';
 import { ResponseError } from '../error/response-error';
 import bcrypt from 'bcrypt';
+import { v4 as uuid } from 'uuid';
 
 export class UserService {
   static async register(request: CreateUserRequest): Promise<UserResponse> {
@@ -33,5 +35,42 @@ export class UserService {
     });
 
     return toUserResponse(user);
+  }
+
+  static async login(request: LoginUserRequest): Promise<UserResponse> {
+    const loginRequest = ValidationHelper.validate(UserSchema.LOGIN, request);
+
+    let user = await prismaClient.user.findUnique({
+      where: {
+        username: loginRequest.username,
+      },
+    });
+
+    if (!user) {
+      throw new ResponseError(401, 'Invalid username or password');
+    }
+
+    const isPasswordMatch = await bcrypt.compare(
+      loginRequest.password,
+      user.password,
+    );
+
+    if (!isPasswordMatch) {
+      throw new ResponseError(401, 'Invalid username or password');
+    }
+
+    user = await prismaClient.user.update({
+      where: {
+        username: loginRequest.username,
+      },
+      data: {
+        token: uuid(),
+      },
+    }); // after update, it will return new user data with token
+
+    const response = toUserResponse(user);
+    response.token = user.token!; // can't modify toUserResponse because it's used by register also. therefore we force add the token here
+
+    return response;
   }
 }
