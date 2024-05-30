@@ -5,3 +5,4 @@ import { UserController } from '../controller/user-controller';
 export const apiRouter = express.Router();
 apiRouter.use(authMiddleware); // after this line, if user is authenticated -> 'req' object will have 'user' data. otherwise the request will stop here.
 apiRouter.get('/api/users/current', UserController.get);
+apiRouter.patch('/api/users/current', UserController.update);

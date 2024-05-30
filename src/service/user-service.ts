@@ -1,6 +1,7 @@
 import {
   CreateUserRequest,
   LoginUserRequest,
+  UpdateUserRequest,
   UserResponse,
   toUserResponse,
 } from '../model/user-model';
@@ -78,5 +79,30 @@ export class UserService {
   // flow : web.ts -> authMiddleware (give user data) -> controller -> service (receive user data) -> DTO
   static async get(user: User): Promise<UserResponse> {
     return toUserResponse(user);
+  }
+
+  static async update(
+    user: User,
+    request: UpdateUserRequest,
+  ): Promise<UserResponse> {
+    const updateRequest = ValidationHelper.validate(UserSchema.UPDATE, request);
+
+    const updateData: Partial<User> = {};
+
+    if (updateRequest.name) {
+      updateData.name = updateRequest.name;
+    }
+
+    if (updateRequest.password) {
+      updateData.password = await bcrypt.hash(updateRequest.password, 10);
+    }
+
+    const result = await prismaClient.user.update({
+      data: updateData,
+      where: {
+        username: user.username,
+      },
+    });
+    return toUserResponse(result);
   }
 }

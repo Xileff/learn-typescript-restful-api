@@ -26,4 +26,17 @@ export class UserSchema {
       .min(8, 'Password min 8 characters')
       .max(100, 'Password max 100 characters'),
   });
+
+  static readonly UPDATE = z.object({
+    name: z
+      .string()
+      .min(1, 'Username min 1 character')
+      .max(100, 'Username max 100 characters')
+      .optional(),
+    password: z
+      .string()
+      .min(8, 'Password min 8 characters')
+      .max(100, 'Password max 100 characters')
+      .optional(),
+  });
 }
