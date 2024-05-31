@@ -49,17 +49,6 @@ Request Header :
 
 - X-API-TOKEN : token
 
-Request Body :
-
-```json
-{
-  "firstName": "Felix",
-  "lastName": "Savero",
-  "email": "felix@example.com",
-  "phone": "081122223333"
-}
-```
-
 Response Body (Success) :
 
 ```json
@@ -115,7 +104,7 @@ Response Body (Success) :
 }
 ```
 
-Request Body (Failed) :
+Response Body (Failed) :
 
 ```json
 {
@@ -139,7 +128,7 @@ Response Body (Success) :
 }
 ```
 
-Request Body (Failed) :
+Response Body (Failed) :
 
 ```json
 {

@@ -12,8 +12,6 @@ import { ResponseError } from '../error/response-error';
 import bcrypt from 'bcrypt';
 import { v4 as uuid } from 'uuid';
 import { User } from '@prisma/client';
-import { UserRequest } from '../type/user-request';
-import { NextFunction, Response } from 'express';
 
 export class UserService {
   static async register(request: CreateUserRequest): Promise<UserResponse> {

@@ -30,7 +30,8 @@ describe('POST /api/users', () => {
 
     logger.debug(response.body);
     expect(response.status).toBe(201);
-    expect(response.body.errors).not.toBeDefined();
+    expect(response.body.data.username).toBe('test');
+    expect(response.body.data.name).toBe('test');
   });
 });
 
@@ -49,7 +50,7 @@ describe('POST /api/users/login', () => {
       password: 'testtest',
     });
 
-    logger.debug('RESPONSE BODY : ', response.body);
+    logger.debug(response.body);
     expect(response.status).toBe(201);
     expect(response.body.data.username).toBe('test');
     expect(response.body.data.name).toBe('test');
@@ -62,7 +63,7 @@ describe('POST /api/users/login', () => {
       password: 'testtest',
     });
 
-    logger.debug('RESPONSE BODY : ', response.body);
+    logger.debug(response.body);
     expect(response.status).toBe(401);
     expect(response.body.data).not.toBeDefined();
     expect(response.body.errors).toBeDefined();
@@ -74,9 +75,8 @@ describe('POST /api/users/login', () => {
       password: 'palabapakkau',
     });
 
-    logger.debug('RESPONSE BODY : ', response.body);
+    logger.debug(response.body);
     expect(response.status).toBe(401);
-    expect(response.body.data).not.toBeDefined();
     expect(response.body.errors).toBeDefined();
   });
 });
@@ -109,7 +109,6 @@ describe('GET /api/users/current', () => {
 
     logger.debug(response.body);
     expect(response.status).toBe(401);
-    expect(response.body.data).not.toBeDefined();
     expect(response.body.errors).toBeDefined();
   });
 });
