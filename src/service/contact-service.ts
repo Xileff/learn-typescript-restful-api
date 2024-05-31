@@ -2,6 +2,7 @@ import { Contact, User } from '@prisma/client';
 import {
   ContactResponse,
   CreateContactRequest,
+  SearchContactRequest,
   UpdateContactRequest,
   toContactResponse,
 } from '../model/contact-model';
@@ -9,16 +10,11 @@ import { ContactSchema } from '../validation/contact-validation';
 import { ValidationHelper } from '../validation/helper';
 import { prismaClient } from '../app/database';
 import { ResponseError } from '../error/response-error';
+import { Pageable } from '../model/page';
 
 export class ContactService {
-  static async create(
-    user: User,
-    request: CreateContactRequest,
-  ): Promise<ContactResponse> {
-    const createRequest = ValidationHelper.validate(
-      ContactSchema.CREATE,
-      request,
-    );
+  static async create(user: User, request: CreateContactRequest): Promise<ContactResponse> {
+    const createRequest = ValidationHelper.validate(ContactSchema.CREATE, request);
 
     const contact = await prismaClient.contact.create({
       data: {
@@ -33,10 +29,7 @@ export class ContactService {
     return toContactResponse(contact);
   }
 
-  static async checkContactMustExists(
-    username: string,
-    id: number,
-  ): Promise<Contact> {
+  static async checkContactMustExists(username: string, id: number): Promise<Contact> {
     const contact = await prismaClient.contact.findFirst({
       where: {
         id,
@@ -56,14 +49,8 @@ export class ContactService {
     return toContactResponse(result);
   }
 
-  static async update(
-    user: User,
-    request: UpdateContactRequest,
-  ): Promise<ContactResponse> {
-    const updateRequest = ValidationHelper.validate(
-      ContactSchema.UPDATE,
-      request,
-    );
+  static async update(user: User, request: UpdateContactRequest): Promise<ContactResponse> {
+    const updateRequest = ValidationHelper.validate(ContactSchema.UPDATE, request);
 
     await this.checkContactMustExists(user.username, updateRequest.id);
 
@@ -94,5 +81,76 @@ export class ContactService {
     });
 
     return toContactResponse(contact);
+  }
+
+  static async search(
+    user: User,
+    request: SearchContactRequest,
+  ): Promise<Pageable<ContactResponse>> {
+    const searchRequest = ValidationHelper.validate(ContactSchema.SEARCH, request);
+
+    const filters = [];
+
+    // query by LIKE first name OR last name
+    console.info('SEARCH NAME : ', searchRequest.name);
+    if (searchRequest.name) {
+      filters.push({
+        OR: [
+          {
+            first_name: {
+              contains: searchRequest.name,
+            },
+            last_name: {
+              contains: searchRequest.name,
+            },
+          },
+        ],
+      });
+    }
+
+    // query by LIKE email
+    if (searchRequest.email) {
+      filters.push({
+        email: {
+          contains: searchRequest.email,
+        },
+      });
+    }
+
+    // query by LIKE phone
+    if (searchRequest.phone) {
+      filters.push({
+        phone: {
+          contains: searchRequest.phone,
+        },
+      });
+    }
+
+    const contacts = await prismaClient.contact.findMany({
+      where: {
+        username: user.username,
+        AND: filters,
+      },
+      take: searchRequest.size,
+      skip: (searchRequest.page - 1) * searchRequest.size,
+    });
+
+    const total = await prismaClient.contact.count({
+      where: {
+        username: user.username,
+        AND: filters,
+      },
+    });
+
+    console.info('CONTACTS : ', contacts);
+
+    return {
+      data: contacts.map((contact) => toContactResponse(contact)),
+      paging: {
+        currentPage: searchRequest.page,
+        size: searchRequest.size,
+        totalPage: Math.ceil(total / searchRequest.size),
+      },
+    };
   }
 }
