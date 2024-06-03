@@ -65,4 +65,16 @@ export class AddressController {
       next(e);
     }
   }
+
+  static async list(req: UserRequest, res: Response, next: NextFunction) {
+    try {
+      const contactId = Number(req.params.contactId);
+      const data = await AddressService.list(req.user!, contactId);
+      res.status(200).json({
+        data,
+      });
+    } catch (e) {
+      next(e);
+    }
+  }
 }
