@@ -72,3 +72,22 @@ export class ContactTest {
     return result;
   }
 }
+
+export class AddressTest {
+  static async deleteAll() {
+    await prismaClient.address.deleteMany({
+      where: {
+        contact: {
+          username: 'test',
+        },
+      },
+    });
+
+    /* equivalent query :
+    DELETE FROM address
+    WHERE contact_id IN (
+      SELECT id FROM contact WHERE username = 'test'
+    );
+    */
+  }
+}

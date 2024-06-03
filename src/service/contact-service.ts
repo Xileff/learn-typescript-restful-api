@@ -92,7 +92,6 @@ export class ContactService {
     const filters = [];
 
     // query by LIKE first name OR last name
-    console.info('SEARCH NAME : ', searchRequest.name);
     if (searchRequest.name) {
       filters.push({
         OR: [
@@ -132,7 +131,7 @@ export class ContactService {
         AND: filters,
       },
       take: searchRequest.size,
-      skip: (searchRequest.page - 1) * searchRequest.size,
+      skip: (searchRequest.page - 1) * searchRequest.size, // misal skrg halaman 2, per halaman 10 data. berarti skip (2 - 1) * 10 = 10 data
     });
 
     const total = await prismaClient.contact.count({
@@ -140,16 +139,14 @@ export class ContactService {
         username: user.username,
         AND: filters,
       },
-    });
-
-    console.info('CONTACTS : ', contacts);
+    }); // untuk tau ada berapa total data sebelum di-paginate (buat itung halaman)
 
     return {
       data: contacts.map((contact) => toContactResponse(contact)),
       paging: {
         currentPage: searchRequest.page,
         size: searchRequest.size,
-        totalPage: Math.ceil(total / searchRequest.size),
+        totalPage: Math.ceil(total / searchRequest.size), // misal total 91 data, per page mau 10 data. berarti total halaman = 91 / 10 -> 10 halaman
       },
     };
   }
